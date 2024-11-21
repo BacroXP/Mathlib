@@ -10,8 +10,8 @@ class num():
         """
         self.segments = []  # List to store segments of the number as strings
         self.chunksize = 5  # Maximum number of digits in each segment
-        
-        self.digits = 0  # Total number of digits in the number
+        self.base = 10**self.chunksize # Calculate the standart base of a chunk
+
         self.negative = num < 0  # Track if the number is negative
         
         # Convert to string and calculate the absolute value to work with digits
@@ -106,7 +106,6 @@ class num():
         # Prepare for the result calculation
         result_segments = []  # This will hold the segments of the result
         borrow = 0  # Variable to track borrow during subtraction
-        base = 100000  # Base for each segment, based on the chunk size
 
         # Loop through each segment from least significant to most significant
         for x, y in zip(reversed(larger.segments), reversed(smaller_segments)):
@@ -117,7 +116,7 @@ class num():
             # If the current segment of larger is smaller than the smaller segment, borrow
             if x_val < y_val:
                 borrow = 1
-                x_val += base  # Borrow means we need to add the base to the current segment value
+                x_val += self.base  # Borrow means we need to add the base to the current segment value
             else:
                 borrow = 0
 
@@ -209,9 +208,6 @@ class num():
         if not isinstance(sec_num, num):
             sec_num = num(int(sec_num))  # Convert sec_num to a `num` instance
 
-        # Base for each segment (chunk size)
-        base = 10**size.chunksize
-
         # Prepare the result storage. The result will have at most len(self.segments) + len(sec_num.segments) segments
         result_segments = [0] * (len(self.segments) + len(sec_num.segments))
 
@@ -219,8 +215,8 @@ class num():
         for i, x in enumerate(reversed(self.segments)):
             for j, y in enumerate(reversed(sec_num.segments)):
                 product = int(x) * int(y) + result_segments[i + j]  # Multiply and add any existing value
-                result_segments[i + j] = product % base  # Current segment value (modulo base)
-                result_segments[i + j + 1] += product // base  # Carry to next segment (integer division)
+                result_segments[i + j] = product % self.base  # Current segment value (modulo base)
+                result_segments[i + j + 1] += product // self.base  # Carry to next segment (integer division)
 
         # Remove leading zeros from the result
         while len(result_segments) > 1 and result_segments[-1] == 0:
