@@ -1,7 +1,7 @@
 
 
 class num():
-    def __init__(self, num: int | str):
+    def __init__(self, num: int | str, chunksize: int = 10):
         """
         Initializes a `num` object by dividing a large number into manageable segments.
         
@@ -9,9 +9,10 @@ class num():
             num (int | str): The number to be represented, can be a positive or negative integer or string.
         """
         self.segments = []  # List to store segments of the number as strings
-        self.chunksize = 5  # Maximum number of digits in each segment
-        self.base = 10**self.chunksize # Calculate the standart base of a chunk
-
+        self.chunksize = chunksize  # Maximum number of digits in each segment
+        self.chunkbase = 10**self.chunksize  # The basic chunkbase
+        
+        self.digits = 0  # Total number of digits in the number
         self.negative = num < 0  # Track if the number is negative
         
         # Convert to string and calculate the absolute value to work with digits
@@ -116,7 +117,7 @@ class num():
             # If the current segment of larger is smaller than the smaller segment, borrow
             if x_val < y_val:
                 borrow = 1
-                x_val += self.base  # Borrow means we need to add the base to the current segment value
+                x_val += self.chunkbase  # Borrow means we need to add the base to the current segment value
             else:
                 borrow = 0
 
@@ -215,8 +216,8 @@ class num():
         for i, x in enumerate(reversed(self.segments)):
             for j, y in enumerate(reversed(sec_num.segments)):
                 product = int(x) * int(y) + result_segments[i + j]  # Multiply and add any existing value
-                result_segments[i + j] = product % self.base  # Current segment value (modulo base)
-                result_segments[i + j + 1] += product // self.base  # Carry to next segment (integer division)
+                result_segments[i + j] = product % self.chunkbase  # Current segment value (modulo base)
+                result_segments[i + j + 1] += product // self.chunkbase  # Carry to next segment (integer division)
 
         # Remove leading zeros from the result
         while len(result_segments) > 1 and result_segments[-1] == 0:
@@ -245,9 +246,54 @@ class num():
     
 
     def __truediv__(self, sec_num: "num | int | float") -> "num":
-        # Coming soon
-        return 0
+        """
+        Performs true division of the current `num` instance by another `num`, int, or float, 
+        using chunk-based arithmetic and ensuring the divisor is also segmented properly.
 
+        Args:
+        - sec_num (num | int | float): The divisor, which can be another `num` object, 
+                                    or an integer/float that will be converted to `num`.
+
+        Returns:
+        - num: The result of the division as a new `num` instance.
+        """
+        # Convert non-num inputs into a `num` object.
+        if not isinstance(sec_num, num):
+            sec_num = num(sec_num)
+
+        # Handle division by zero.
+        if sec_num == 0:
+            raise ZeroDivisionError("Division by zero is not allowed.")
+
+        # Create a result `num` object and initialize its attributes.
+        result = num(0)
+        result.negative = self.negative != sec_num.negative  # Set the sign of the result.
+
+        # Result storage (in chunks).
+        chunk_result = []
+        remainder = 0
+
+        # Process the dividend chunk by chunk.
+        for chunk in self.segments:
+            # Bring down the next chunk, combining with any remainder from the previous step.
+            current_value = remainder * (10 ** self.chunksize) + int(chunk)
+
+            # Perform integer division for this chunk.
+            chunk_quotient = current_value // int("".join(sec_num.segments))
+            remainder = current_value % int("".join(sec_num.segments))
+
+            # Convert the quotient back to a chunk, ensuring it respects chunk size.
+            chunk_result.append(f"{chunk_quotient:0{self.chunksize}d}")
+
+        # Clean up leading zeros from the result.
+        if int(chunk_result[0]) == 0:
+            chunk_result.remove(chunk_result[0])
+        chunk_result[0] = chunk_result[0].lstrip("0") or "0"
+
+        # Assign the final result.
+        result.segments = chunk_result
+
+        return result
 
     def __round__(self, ndigits: int = 0) -> str:
         """

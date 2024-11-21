@@ -37,18 +37,18 @@ def test_num_class() -> None:
     i = num(10000000000) / num(100000)
     assert str(i) == "100000", f"Division test failed: {i}"
 
-    j = num(98765432109876543210) / num(1234567890)
-    assert str(j) == "80000000000", f"Division test failed: {j}"
+    j = num(927743737372291) / num(97531)
+    assert str(j) == "9512295961", f"Division test failed: {j}"
 
     # Test rounding functions
     k = num(9)
-    assert k.__ceil__() == "10", f"Ceil test failed: {k.__ceil__()}"
+    assert k.__ceil__() == "9", f"Ceil test failed: {k.__ceil__()}"
     assert k.__floor__() == "9", f"Floor test failed: {k.__floor__()}"
     assert round(k) == "9", f"Round test failed: {round(k)}"
 
     l = num(-9)
     assert l.__ceil__() == "-9", f"Ceil test failed: {l.__ceil__()}"
-    assert l.__floor__() == "-10", f"Floor test failed: {l.__floor__()}"
+    assert l.__floor__() == "-9", f"Floor test failed: {l.__floor__()}"
     assert round(l) == "-9", f"Round test failed: {round(l)}"
 
     # Test comparisons
