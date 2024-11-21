@@ -210,7 +210,7 @@ class num():
             sec_num = num(int(sec_num))  # Convert sec_num to a `num` instance
 
         # Base for each segment (chunk size)
-        base = 100000
+        base = 10**size.chunksize
 
         # Prepare the result storage. The result will have at most len(self.segments) + len(sec_num.segments) segments
         result_segments = [0] * (len(self.segments) + len(sec_num.segments))
