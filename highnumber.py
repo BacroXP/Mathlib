@@ -1,4 +1,4 @@
-from math_lib import num
+from math_lib import nums, num
 
 def test_num_class() -> None:
     """
@@ -56,6 +56,10 @@ def test_num_class() -> None:
     assert b < a, f"Comparison test failed: {b} >= {a}"
     assert a == num(12345678901234567890), f"Comparison test failed: {a} != 12345678901234567890"
     assert b != a, f"Comparison test failed: {b} == {a}"
+    
+    assert nums.pi(10) == "3.1415926535", f"Number test failed: {nums.pi(10)}"
+    assert nums.e(10) == "2.7182818284", f"Number test failed: {nums.e(10)}"
+    assert nums.i().__mul__(nums.i()) == "-1", f"Number test failed: {nums.pi(10)}"
 
     print("All tests passed!")
 
