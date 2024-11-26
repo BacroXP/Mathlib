@@ -1,4 +1,4 @@
-from math_lib import nums, num
+from math_lib import num, pi, e, i
 
 def test_num_class() -> None:
     """
@@ -20,8 +20,8 @@ def test_num_class() -> None:
     assert str(d) == "23456790012345679001.0", f"Addition test failed: {d}"
 
     # Test subtraction
-    e = b - a
-    assert str(e) == "-111111111011111111100.0", f"Subtraction test failed: {e}"
+    _e = b - a
+    assert str(_e) == "-111111111011111111100.0", f"Subtraction test failed: {_e}"
 
     f = a - num(12345678901234567890)
     assert str(f) == "0.0", f"Subtraction test failed: {f}"
@@ -34,8 +34,8 @@ def test_num_class() -> None:
     assert str(h) == "-838102050.0", f"Multiplication test failed: {h}"
 
     # Test division
-    i = num(10000000000) / num(100000)
-    assert str(i) == "100000.0", f"Division test failed: {i}"
+    _i = num(10000000000) / num(100000)
+    assert str(_i) == "100000.0", f"Division test failed: {_i}"
 
     j = num(927743737372291) / num(97531)
     assert str(j) == "9512295961.0", f"Division test failed: {j}"
@@ -46,10 +46,10 @@ def test_num_class() -> None:
     assert k.__floor__(1).__str__() == "9.0", f"Floor test failed: {k.__floor__(1)}"
     assert k.__round__(1).__str__() == "9.0", f"Round test failed: {k.__round__(1)}"
 
-    l = num(-9)
-    assert l.__ceil__(1).__str__() == "-9.0", f"Ceil test failed: {l.__ceil__(1)}"
-    assert l.__floor__(1).__str__() == "-9.0", f"Floor test failed: {l.__floor__(1)}"
-    assert l.__round__(1).__str__() == "-9.0", f"Round test failed: {l.__round__(1)}"
+    _l = num(-9)
+    assert _l.__ceil__(1).__str__() == "-9.0", f"Ceil test failed: {_l.__ceil__(1)}"
+    assert _l.__floor__(1).__str__() == "-9.0", f"Floor test failed: {_l.__floor__(1)}"
+    assert _l.__round__(1).__str__() == "-9.0", f"Round test failed: {_l.__round__(1)}"
 
     # Test comparisons
     assert a > b, f"Comparison test failed: {a} <= {b}"
@@ -57,9 +57,13 @@ def test_num_class() -> None:
     assert a == num(12345678901234567890), f"Comparison test failed: {a} != 12345678901234567890"
     assert b != a, f"Comparison test failed: {b} == {a}"
     
-    assert nums.pi(10) == "3.1415926535", f"Number test failed: {nums.pi(10)}"
-    assert nums.e(10) == "2.7182818284", f"Number test failed: {nums.e(10)}"
-    assert nums.i().__mul__(nums.i()) == "-1", f"Number test failed: {nums.pi(10)}"
+    # Complex numbers
+    assert pi() == num(3.1415926535), f"Pi init failed: {pi()}"
+    assert e() == num(3.7182818284), f"E init failed: {e()}"
+    
+    # Imaginary numbers
+    assert i() * i() == num(-1), f"Not correctly solved: {i() * i()}"
+    assert i() ** 4 == num(1), f"Not correctly solved: {i() ** 4}"
 
     print("All tests passed!")
 

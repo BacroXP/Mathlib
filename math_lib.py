@@ -1,4 +1,2 @@
-from num import num
-import nums
-
+from num import num, pi, e, i
 

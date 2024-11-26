@@ -42,7 +42,7 @@ The `num` class is a Python library for handling **high-precision arithmetic** u
 Import the library and use it in your Python code:
 
 ```python
-from math_lib import num
+from num import num
 
 # Initialize numbers
 a = num(12345)
@@ -84,4 +84,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## Author
 
-Created by **BacroXP**. Feel free to reach out via GitHub for feedback or questions!
+Created by **Your Name**. Feel free to reach out via GitHub for feedback or questions!

@@ -1,3 +1,4 @@
+import math
 
 
 class num():
@@ -12,6 +13,8 @@ class num():
         self.split_segments = []  # List to store the fractional part chunks
         self.chunksize = chunksize  # Maximum number of digits in each segment
         self.chunkbase = 10 ** self.chunksize  # The base for chunks
+        
+        self.imaginary = False
         
         # Convert input to string and determine negativity
         if isinstance(num, (int, float)):
@@ -181,6 +184,10 @@ class num():
         # Convert non-`num` inputs to `num`
         if not isinstance(sec_num, num):
             sec_num = num(sec_num)
+        
+        # Controll for Imaginary numbers
+        if sec_num.imaginary:
+            raise ValueError
 
         # Case 1: Same sign addition
         if self.negative == sec_num.negative:
@@ -233,9 +240,16 @@ class num():
         Returns:
             num: A new `num` instance representing the product of the two numbers.
         """
+        
         # Convert sec_num to a num instance if it is not already a num
         if not isinstance(sec_num, num):
             sec_num = num(sec_num)  # Convert sec_num to a `num` instance
+        
+        # Controll for Imaginary numbers
+        if sec_num.imaginary:
+            if self == 1:
+                return i()
+            raise ValueError
 
         # Prepare the result storage. The result will have at most len(self.full_segments) + len(sec_num.full_segments) full_segments
         result_full_segments = [0] * (len(self.full_segments) + len(sec_num.full_segments))
@@ -307,10 +321,21 @@ class num():
         # Convert non-num inputs into a `num` object.
         if not isinstance(sec_num, num):
             sec_num = num(sec_num)
+        
+        # Controll for Imaginary numbers
+        if sec_num.imaginary:
+            raise ValueError
 
         # Handle division by zero.
         if sec_num == 0:
             raise ZeroDivisionError("Division by zero is not allowed.")
+        
+        # Handle division with imaginary number
+        if sec_num.imaginary and isinstance(sec_num, "i"):
+            if self == -1:
+                return i()
+            else:
+                raise ValueError
 
         # Create a result `num` object and initialize its attributes.
         result = num(0)
@@ -341,6 +366,67 @@ class num():
         result.full_segments = chunk_result
 
         return result
+
+
+    def __pow__(self, sec_num: "num | int | float") -> "num | i":
+        """
+        Raises the current `num` instance to the power of `sec_num`.
+
+        Args:
+            sec_num (num | int | float): The exponent to raise the current number to.
+
+        Returns:
+            num: A new `num` instance representing the result of the power operation.
+        """
+        # Convert sec_num to a num instance if it's not already
+        if not isinstance(sec_num, num):
+            sec_num = num(sec_num)
+        
+        # Controll for Imaginary numbers
+        if sec_num.imaginary:
+            raise ValueError
+
+        # Handle special cases
+        if self == num(0) and sec_num == num(0):
+            raise ValueError("0 ** 0 is undefined.")
+        if self == num(0):
+            return num(0)
+        if sec_num == num(0):
+            return num(1)
+
+        # Check if either number is imaginary (`i`)
+        if isinstance(self, i) or isinstance(sec_num, i):
+            return self._handle_imaginary_powers(sec_num)
+
+        # Convert to floating-point numbers for computation
+        base = float(str(self))
+        exponent = float(str(sec_num))
+
+        # Calculate the power
+        result_value = base ** exponent
+
+        # Convert the result back to a num instance
+        result = num(result_value)
+        return result
+
+
+    def _handle_imaginary_powers(self, sec_num):
+        """
+        Handle imaginary powers for i^n where n is an integer or a number.
+        """
+        # Convert sec_num to an integer after ensuring it can be properly converted
+        if isinstance(sec_num, num):
+            exp = int(float(str(sec_num))) % 4  # Convert to float first, then to int
+        elif isinstance(sec_num, (int, float)):
+            exp = int(sec_num) % 4
+        else:
+            raise ValueError(f"Unsupported type for sec_num: {type(sec_num)}")
+
+        # Define the cycle for i^n
+        imaginary_cycle = ["1", "i", "-1", "-i"]
+
+        # Return the result from the cycle
+        return imaginary_cycle[exp]
 
 
     def __round__(self, ndigits: int = 0) -> "num":
@@ -619,6 +705,10 @@ class num():
         # Convert non-num types to a num object for comparison
         if not isinstance(sec_num, num):
             sec_num = num(sec_num)
+        
+        # Controll for Imaginary numbers
+        if sec_num.imaginary:
+            raise ValueError
 
         # Check full (before the decimal) and split (after the decimal) segments and the sign
         return (self.full_segments == sec_num.full_segments and
@@ -637,35 +727,39 @@ class num():
         - True if the current number is greater than `sec_num`, otherwise False.
         """
         # If sec_num is another num object
-        if isinstance(sec_num, num):
-            # Check if the numbers are equal
-            if self.__eq__(sec_num):
-                return False
+        if isinstance(sec_num, int | float):
+            return self.__gt__(self, num(sec_num))
+        
+        # Controll for Imaginary numbers
+        if sec_num.imaginary:
+            raise ValueError
             
-            # If the signs differ, the positive number is greater
-            if self.negative != sec_num.negative:
-                return sec_num.negative
-            
-            # Compare the number of full_digits (length of the full_segments)
-            if self.full_digits > sec_num.full_digits:
-                return True
-            elif sec_num.full_digits > self.full_digits:
-                return False
-            
-            # Compare each segment from the most significant
-            for seg1, seg2 in zip(self.full_segments, sec_num.full_segments):
-                for char1, char2 in zip(seg1, seg2):
-                    # Compare each character and return the result
-                    if char1 != char2:
-                        return char1 > char2
+        # Check if the numbers are equal
+        if self.__eq__(sec_num):
+            return False
+        
+        # If the signs differ, the positive number is greater
+        if self.negative != sec_num.negative:
+            return sec_num.negative
+        
+        # Compare the number of full_digits (length of the full_segments)
+        if self.full_digits > sec_num.full_digits:
+            return True
+        elif sec_num.full_digits > self.full_digits:
+            return False
+        
+        # Compare each segment from the most significant
+        for seg1, seg2 in zip(self.full_segments, sec_num.full_segments):
+            for char1, char2 in zip(seg1, seg2):
+                # Compare each character and return the result
+                if char1 != char2:
+                    return char1 > char2
 
-            for seg1, seg2 in zip(self.split_segments, sec_num.split_segments):
-                for char1, char2 in zip(seg1, seg2):
-                    # Compare each character and return the result
-                    if char1 != char2:
-                        return char1 > char2
-
-        return False
+        for seg1, seg2 in zip(self.split_segments, sec_num.split_segments):
+            for char1, char2 in zip(seg1, seg2):
+                # Compare each character and return the result
+                if char1 != char2:
+                    return char1 > char2
 
 
     def __ne__(self, sec_num: "num") -> bool:
@@ -749,4 +843,206 @@ class num():
             rep += "0"
         
         return rep  # Return the complete string representation of the number.
+
+
+class pi(num):
+    def __init__(self, dig: int = 10):
+        """
+        Initialize the pi class with a specified number of digits.
+        
+        Args:
+            dig (int): The number of digits of pi to represent.
+        """
+        # Initialize the parent class `num` with an initial value of 0 and a chunk size of 1000.
+        super().__init__(0, 1000)
+        
+        # Represent the number:
+        self.full_segments = ["3"]
+        self.split_segments = ["0"] * ((dig // self.chunksize) + 1)
+        
+        # Calculate the wanted digits of pi
+        self.calculate_digits(dig)
+    
+    
+    def calculate_digits(self, dig: int) -> None:
+        """
+        Calculate the digits of pi up to `n` digits.
+        
+        This method uses the math module to calculate pi to the specified number of digits.
+        
+        Args:
+            n (int): The number of digits to calculate.
+        """
+        # Use Python's math library to get pi and then convert it to a string.
+        pi_value = str(math.pi)
+        
+        # Only keep the part up to the specified number of digits.
+        # Add 1 to account for the '3.' part of the pi number.
+        pi_digits = pi_value[2: dig + 2]
+        
+        # Split the digits into chunks of `self.chunksize`
+        num_chunks = (dig // self.chunksize) + 1
+        self.split_segments = [pi_digits[i * self.chunksize: (i + 1) * self.chunksize] for i in range(num_chunks)]
+
+
+class e(num):
+    def __init__(self, dig: int = 10):
+        """
+        Initialize the e class with a specified number of digits.
+        
+        Args:
+            dig (int): The number of digits of e to represent.
+        """
+        # Initialize the parent class `num` with an initial value of 0 and a chunk size of 1000.
+        super().__init__(0, 1000)
+        
+        # Represent the number:
+        self.full_segments = ["3"]
+        self.split_segments = ["0"] * ((dig // self.chunksize) + 1)
+        
+        # Calculate the wanted digits of e
+        self.calculate_digits(dig)
+    
+    
+    def calculate_digits(self, dig: int) -> None:
+        """
+        Calculate the digits of e up to `n` digits.
+        
+        This method uses the math module to calculate e to the specified number of digits.
+        
+        Args:
+            n (int): The number of digits to calculate.
+        """
+        # Use Python's math library to get e and then convert it to a string.
+        e_value = str(math.e)
+        
+        # Only keep the part up to the specified number of digits.
+        # Add 1 to account for the '3.' part of the e number.
+        e_digits = e_value[2: dig + 2]
+        
+        # Split the digits into chunks of `self.chunksize`
+        num_chunks = (dig // self.chunksize) + 1
+        self.split_segments = [e_digits[i * self.chunksize: (i + 1) * self.chunksize] for i in range(num_chunks)]
+
+
+class i(num):
+    def __init__(self):
+        super().__init__(0)
+        
+        self.chunkbase = None
+        self.chunksize = None
+        self.full_digits = None
+        self.full_segments = None
+        self.split_digits = None
+        self.split_segments = None
+        self.negative = None
+    
+    
+    @staticmethod
+    def __mul__(sec_num: "num | int | float"):
+        """
+        Handle multiplication of the imaginary number by another number.
+        This involves using the rules of complex number multiplication:
+        i * i = -1.
+        
+        Args:
+            other (num or i): The other number to multiply by.
+        
+        Returns:
+            num: The result of the multiplication.
+        """
+        if isinstance(sec_num, i):
+            return num(-1)  # i * i = -1
+        else:
+            raise ValueError
+    
+    
+    @staticmethod
+    def __truediv__(sec_num: "num | int | float"):
+        raise ValueError
+    
+    
+    @staticmethod
+    def __add__():
+        raise ValueError
+    
+    
+    @staticmethod
+    def __sub__():
+        raise ValueError
+    
+    
+    @staticmethod
+    def __abs__():
+        raise ValueError
+    
+    
+    @staticmethod
+    def __neg__():
+        raise ValueError
+    
+    
+    @staticmethod
+    def __bool__():
+        return True
+    
+    
+    @staticmethod
+    def __or__(_):
+        return True
+    
+    
+    @staticmethod
+    def __and__(sec_num: "num | int | float"):
+        return sec_num != 0
+    
+    
+    @staticmethod
+    def __round__():
+        return i()
+    
+    
+    @staticmethod
+    def __ceil__():
+        return i()
+    
+    
+    @staticmethod
+    def __floor__():
+        return i()
+    
+    
+    @staticmethod
+    def __lt__(_):
+        raise ValueError
+    
+    
+    @staticmethod
+    def __gt__(_):
+        raise ValueError
+    
+    
+    @staticmethod
+    def __le__(_):
+        raise ValueError
+    
+    
+    @staticmethod
+    def __ge__(_):
+        raise ValueError
+    
+    
+    @staticmethod
+    def __eq__(sec_num: "num | int | float"):
+        return isinstance(sec_num, i)
+    
+    
+    @staticmethod
+    def __ne__(sec_num: "num | int | float"):
+        return not issubclass(sec_num, i)
+    
+    
+    @staticmethod
+    def __str__():
+        return "i"
 
