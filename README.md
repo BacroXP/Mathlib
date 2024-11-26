@@ -84,4 +84,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## Author
 
-Created by **Your Name**. Feel free to reach out via GitHub for feedback or questions!
+Created by **BacroXP**. Feel free to reach out via GitHub for feedback or questions!
